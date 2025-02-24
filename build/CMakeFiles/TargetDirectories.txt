@@ -1,0 +1,2 @@
+/home/BJAP/Desktop/ESET420/build/CMakeFiles/edit_cache.dir
+/home/BJAP/Desktop/ESET420/build/CMakeFiles/rebuild_cache.dir
