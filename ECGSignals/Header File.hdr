@@ -9,4 +9,4 @@ Digital Output 4			Gain: 2.4400
 Digital Output 6			Gain: 2.4400
 
 Notes:
-I think the data format is int16
+Data format is float64
