@@ -1,3 +1,5 @@
+// gcc -o BaseUnit BaseUnit.c -lSDL2 -lSDL2_ttf
+
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,8 +85,8 @@ int main(int argc, char* argv[]) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     size_t mom_samples, baby_samples;
-    double* mom_data = load_ecg_data("/home/Desktop/ESET420/ECGSignals/OriginalECGRacapMom.dat", &mom_samples);
-    double* baby_data = load_ecg_data("/home/Desktop/ESET420/ECGSignals/BabyECGRacap.dat", &baby_samples);
+    double* mom_data = load_ecg_data("../ECGSignals/OriginalECGRacapMom.dat", &mom_samples);
+    double* baby_data = load_ecg_data("../ECGSignals/BabyECGRacap.dat", &baby_samples);
 
     if (!mom_data || !baby_data) {
         SDL_DestroyRenderer(renderer);
