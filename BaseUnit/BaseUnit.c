@@ -1,9 +1,11 @@
+// gcc -o BaseUnit BaseUnit.c -lSDL2 -lSDL2_ttf
+
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 2560
+#define SCREEN_HEIGHT 1440
 #define CHANNEL_INDEX 1 // ECG channel index
 #define SCAN_RATE 1000  // Hz
 #define NUM_CHANNELS 5  // Total number of channels
@@ -94,8 +96,8 @@ int main(int argc, char* argv[]) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     size_t mom_samples, sum_samples;
-    double* mom_data = load_ecg_data("/home/pi/Desktop/ESET420/ECGSignals/OriginalECGRacapMom.dat", &mom_samples);
-    double* sum_data = load_ecg_data("/home/pi/Desktop/ESET420/ECGSignals/SumECGRacapMomPlusBaby.dat", &sum_samples);
+    double* mom_data = load_ecg_data("../../ECGSignals/SumECGRacapMomPlusBaby.dat", &mom_samples);
+    double* sum_data = load_ecg_data("../../ECGSignals/BabyECGRacap.dat", &sum_samples);
 
     if (!mom_data || !sum_data) {
         SDL_DestroyRenderer(renderer);

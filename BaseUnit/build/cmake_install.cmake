@@ -1,4 +1,4 @@
-# Install script for directory: /home/BJAP/Desktop/ESET420/base-unit
+# Install script for directory: /home/BJAP/Desktop/ESET420/BaseUnit
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/BJAP/Desktop/ESET420/base-unit/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/BJAP/Desktop/ESET420/BaseUnit/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
