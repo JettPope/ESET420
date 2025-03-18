@@ -1,5 +1,3 @@
-// gcc -o BaseUnit BaseUnit.c -lSDL2 -lSDL2_ttf
-
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +39,21 @@ double* load_ecg_data(const char* filepath, size_t* out_samples) {
     return buffer;
 }
 
+// Function to compute baby's ECG signal
+double* compute_baby_ecg(double* sum_ecg, double* mom_ecg, size_t samples) {
+    double* baby_ecg = (double*)malloc(samples * sizeof(double));
+    if (!baby_ecg) {
+        perror("Failed to allocate memory for baby ECG");
+        return NULL;
+    }
+
+    for (size_t i = 0; i < samples; i++) {
+        baby_ecg[i] = sum_ecg[i * NUM_CHANNELS + CHANNEL_INDEX] - mom_ecg[i * NUM_CHANNELS + CHANNEL_INDEX];
+    }
+
+    return baby_ecg;
+}
+
 // Function to draw ECG signal
 void draw_ecg(SDL_Renderer* renderer, double* data, size_t samples, int y_offset, SDL_Color color) {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
@@ -48,25 +61,21 @@ void draw_ecg(SDL_Renderer* renderer, double* data, size_t samples, int y_offset
     int points = SCAN_RATE * TIME_WINDOW;
     if (samples < points) points = samples;
 
-    double min_val = data[CHANNEL_INDEX];
-    double max_val = data[CHANNEL_INDEX];
+    double min_val = data[0], max_val = data[0];
 
     // Find min and max in window
     for (int i = 0; i < points; i++) {
-        double value = data[i * NUM_CHANNELS + CHANNEL_INDEX];
-        if (value < min_val) min_val = value;
-        if (value > max_val) max_val = value;
+        if (data[i] < min_val) min_val = data[i];
+        if (data[i] > max_val) max_val = data[i];
     }
 
     // Scale and plot points
     for (int i = 0; i < points - 1; i++) {
-        double v1 = data[i * NUM_CHANNELS + CHANNEL_INDEX];
-        double v2 = data[(i + 1) * NUM_CHANNELS + CHANNEL_INDEX];
         int x1 = (i * SCREEN_WIDTH) / points;
         int x2 = ((i + 1) * SCREEN_WIDTH) / points;
 
-        int y1 = y_offset + SCREEN_HEIGHT / 4 - (int)((v1 - min_val) / (max_val - min_val + 1e-6) * (SCREEN_HEIGHT / 4));
-        int y2 = y_offset + SCREEN_HEIGHT / 4 - (int)((v2 - min_val) / (max_val - min_val + 1e-6) * (SCREEN_HEIGHT / 4));
+        int y1 = y_offset + SCREEN_HEIGHT / 4 - (int)((data[i] - min_val) / (max_val - min_val + 1e-6) * (SCREEN_HEIGHT / 4));
+        int y2 = y_offset + SCREEN_HEIGHT / 4 - (int)((data[i + 1] - min_val) / (max_val - min_val + 1e-6) * (SCREEN_HEIGHT / 4));
 
         SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
     }
@@ -84,11 +93,22 @@ int main(int argc, char* argv[]) {
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    size_t mom_samples, baby_samples;
-    double* mom_data = load_ecg_data("../../ECGSignals/SumECGRacapMomPlusBaby.dat", &mom_samples);
-    double* baby_data = load_ecg_data("../../ECGSignals/BabyECGRacap.dat", &baby_samples);
+    size_t mom_samples, sum_samples;
+    double* mom_data = load_ecg_data("/home/pi/Desktop/ESET420/ECGSignals/OriginalECGRacapMom.dat", &mom_samples);
+    double* sum_data = load_ecg_data("/home/pi/Desktop/ESET420/ECGSignals/SumECGRacapMomPlusBaby.dat", &sum_samples);
 
-    if (!mom_data || !baby_data) {
+    if (!mom_data || !sum_data) {
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+
+    // Compute baby's ECG signal
+    double* baby_data = compute_baby_ecg(sum_data, mom_data, mom_samples);
+    if (!baby_data) {
+        free(mom_data);
+        free(sum_data);
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -111,7 +131,7 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         draw_ecg(renderer, mom_data + offset * NUM_CHANNELS, mom_samples - offset, 0, mom_color);
-        draw_ecg(renderer, baby_data + offset * NUM_CHANNELS, baby_samples - offset, SCREEN_HEIGHT / 2, baby_color);
+        draw_ecg(renderer, baby_data + offset, mom_samples - offset, SCREEN_HEIGHT / 2, baby_color);
 
         SDL_RenderPresent(renderer);
 
@@ -122,6 +142,7 @@ int main(int argc, char* argv[]) {
     }
 
     free(mom_data);
+    free(sum_data);
     free(baby_data);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
