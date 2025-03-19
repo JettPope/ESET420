@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
 #define CHANNEL_INDEX 1 // ECG channel index
 #define SCAN_RATE 1000  // Hz
 #define NUM_CHANNELS 5  // Total number of channels
@@ -112,22 +112,64 @@ int main(int argc, char* argv[]) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     TTF_Font* font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24);
 
+    if (!font) {
+        printf("Failed to load font: %s\n", TTF_GetError());
+        return 1;
+    }
+
     size_t mom_samples, sum_samples;
-    double* mom_data = load_ecg_data("../ECGSignals/OriginalECGRacapMom.dat", &mom_samples);
-    double* sum_data = load_ecg_data("../ECGSignals/SumECGRacapMomPlusBaby.dat", &sum_samples);
+    double* mom_data = load_ecg_data("../../ECGSignals/OriginalECGRacapMom.dat", &mom_samples);
+    double* sum_data = load_ecg_data("../../ECGSignals/SumECGRacapMomPlusBaby.dat", &sum_samples);
+    
+    if (!mom_data || !sum_data) {
+        printf("Failed to load ECG data.\n");
+        return 1;
+    }
+
     double* baby_data = compute_baby_ecg(sum_data, mom_data, mom_samples);
 
     int mom_heart_rate = calculate_heart_rate(mom_data, mom_samples);
     int baby_heart_rate = calculate_heart_rate(baby_data, mom_samples);
+
     SDL_Color text_color = {255, 255, 255};
     SDL_Color mom_color = {COLOR_MOM_R, COLOR_MOM_G, COLOR_MOM_B};
     SDL_Color baby_color = {COLOR_BABY_R, COLOR_BABY_G, COLOR_BABY_B};
 
-    SDL_RenderPresent(renderer);
-    SDL_Delay(100);
+    int running = 1;
+    SDL_Event event;
+
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = 0;
+            }
+        }
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        draw_ecg(renderer, mom_data, mom_samples, SCREEN_HEIGHT / 4, mom_color);
+        draw_ecg(renderer, baby_data, mom_samples, SCREEN_HEIGHT / 2, baby_color);
+
+        char mom_hr_text[64], baby_hr_text[64];
+        snprintf(mom_hr_text, sizeof(mom_hr_text), "Mom HR: %d BPM", mom_heart_rate);
+        snprintf(baby_hr_text, sizeof(baby_hr_text), "Baby HR: %d BPM", baby_heart_rate);
+
+        draw_text(renderer, font, mom_hr_text, 50, 50, text_color);
+        draw_text(renderer, font, baby_hr_text, 50, 100, text_color);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16); // ~60 FPS
+    }
+
+    free(mom_data);
+    free(sum_data);
+    free(baby_data);
+    TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     TTF_Quit();
     SDL_Quit();
     return 0;
 }
+
