@@ -132,8 +132,8 @@ int main(int argc, char* argv[]) {
 
     double* baby_data = compute_baby_ecg(sum_data, mom_data, mom_samples);
 
-    int mom_heart_rate = calculate_heart_rate(mom_data, mom_samples, 1);
-    int baby_heart_rate = calculate_heart_rate(baby_data, mom_samples, .1);
+    int mom_heart_rate = calculate_heart_rate(mom_data, mom_samples, 4.5);
+    int baby_heart_rate = calculate_heart_rate(baby_data, mom_samples, .095);
 
     SDL_Color text_color = {255, 255, 255};
     SDL_Color mom_color = {COLOR_MOM_R, COLOR_MOM_G, COLOR_MOM_B};
