@@ -64,9 +64,8 @@ double* compute_baby_ecg(double* sum_ecg, double* mom_ecg, size_t samples) {
 }
 
 // Function to estimate heart rate
-int calculate_heart_rate(double* data, size_t samples) {
+int calculate_heart_rate(double* data, size_t samples, double threshold) {
     int peak_count = 0;
-    double threshold = 0.5;  // Adjust based on signal amplitude
 
     for (size_t i = 1; i < samples - 1; i++) {
         if (data[i] > data[i - 1] && data[i] > data[i + 1] && data[i] > threshold) {
@@ -133,8 +132,8 @@ int main(int argc, char* argv[]) {
 
     double* baby_data = compute_baby_ecg(sum_data, mom_data, mom_samples);
 
-    int mom_heart_rate = calculate_heart_rate(mom_data, mom_samples);
-    int baby_heart_rate = calculate_heart_rate(baby_data, mom_samples);
+    int mom_heart_rate = calculate_heart_rate(mom_data, mom_samples, 1);
+    int baby_heart_rate = calculate_heart_rate(baby_data, mom_samples, .1);
 
     SDL_Color text_color = {255, 255, 255};
     SDL_Color mom_color = {COLOR_MOM_R, COLOR_MOM_G, COLOR_MOM_B};
