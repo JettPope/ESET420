@@ -66,13 +66,18 @@ double* compute_baby_ecg(double* sum_ecg, double* mom_ecg, size_t samples) {
 // Function to estimate heart rate
 int calculate_heart_rate(double* data, size_t samples) {
     int peak_count = 0;
+    double threshold = 0.5;  // Adjust based on signal amplitude
+
     for (size_t i = 1; i < samples - 1; i++) {
-        if (data[i] > data[i - 1] && data[i] > data[i + 1]) {
+        if (data[i] > data[i - 1] && data[i] > data[i + 1] && data[i] > threshold) {
             peak_count++;
         }
     }
-    return (peak_count * 60) / TIME_WINDOW;
+
+    double duration_seconds = (double)samples / SCAN_RATE;
+    return (int)((peak_count / duration_seconds) * 60);  // BPM conversion
 }
+
 
 // Function to draw text
 void draw_text(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color color) {
