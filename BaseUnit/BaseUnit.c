@@ -171,8 +171,6 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
 
     while (running) {
-        draw_axes(renderer, font, SCREEN_HEIGHT / 4);
-        draw_axes(renderer, font, SCREEN_HEIGHT / 2);    
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = 0;
@@ -184,6 +182,8 @@ int main(int argc, char* argv[]) {
 
         draw_ecg(renderer, mom_data, mom_samples, SCREEN_HEIGHT / 4, mom_color);
         draw_ecg(renderer, baby_data, mom_samples, SCREEN_HEIGHT / 2, baby_color);
+        draw_axes(renderer, font, SCREEN_HEIGHT / 4);
+        draw_axes(renderer, font, SCREEN_HEIGHT / 2);
 
         char mom_hr_text[64], baby_hr_text[64];
         snprintf(mom_hr_text, sizeof(mom_hr_text), "Mom HR: %d BPM", mom_heart_rate);
@@ -194,6 +194,7 @@ int main(int argc, char* argv[]) {
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16); // ~60 FPS
+
     }
 
     free(mom_data);
