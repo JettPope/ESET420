@@ -132,7 +132,7 @@ void draw_axes(SDL_Renderer* renderer, TTF_Font* font, int y_offset) {
         int x = 50 + (i * (SCREEN_WIDTH - 100)) / TIME_WINDOW;
         char label[8];
         snprintf(label, sizeof(label), "%ds", i);
-        draw_text(renderer, font, label, x, y_offset + SCREEN_HEIGHT / 4 + 10, white);
+        draw_text(renderer, font, label, x, y_offset + SCREEN_HEIGHT / 4 + 10, white, 0);
     }
 
     // Draw Y-Axis
@@ -143,7 +143,7 @@ void draw_axes(SDL_Renderer* renderer, TTF_Font* font, int y_offset) {
         int y = y_offset + SCREEN_HEIGHT / 4 - (int)((i + 1) * (SCREEN_HEIGHT / 8));
         char label[8];
         snprintf(label, sizeof(label), "%dmV", i * 500);  // Assuming ±500mV range
-        draw_text(renderer, font, label, 10, y, white);
+        draw_text(renderer, font, label, 10, y, white, 0);
     }
 }
 
