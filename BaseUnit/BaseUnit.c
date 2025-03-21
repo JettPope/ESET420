@@ -17,7 +17,7 @@
 #define COLOR_MOM_G 0
 #define COLOR_MOM_B 0
 #define COLOR_BABY_R 0
-#define COLOR_BABY_G 0
+#define COLOR_BABY_G 255
 #define COLOR_BABY_B 255
 
 // Placeholder values
@@ -63,14 +63,22 @@ double* compute_baby_ecg(double* sum_ecg, double* mom_ecg, size_t samples) {
     return baby_ecg;
 }
 
-// Function to estimate heart rate
+// Function to estimate heart rate with moving average filtering
 int calculate_heart_rate(double* data, size_t samples, double threshold) {
     int peak_count = 0;
+    double prev_val = data[0], curr_val, next_val;
 
     for (size_t i = 1; i < samples - 1; i++) {
-        if (data[i] > data[i - 1] && data[i] > data[i + 1] && data[i] > threshold) {
+        curr_val = data[i];
+        next_val = data[i + 1];
+
+        // Peak detection with threshold
+        if (curr_val > prev_val && curr_val > next_val && curr_val > threshold) {
             peak_count++;
+            i += SCAN_RATE / 5; // Skip some points to prevent detecting the same peak twice
         }
+
+        prev_val = curr_val;
     }
 
     double duration_seconds = (double)samples / SCAN_RATE;
@@ -79,10 +87,13 @@ int calculate_heart_rate(double* data, size_t samples, double threshold) {
 
 
 // Function to draw text
-void draw_text(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color color) {
+void draw_text(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color color, int center) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_Rect rect = {x, y, surface->w, surface->h};
+    
+    if (center) rect.x = (SCREEN_WIDTH - rect.w) / 2;
+    
     SDL_RenderCopy(renderer, texture, NULL, &rect);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
@@ -103,8 +114,8 @@ void draw_ecg(SDL_Renderer* renderer, double* data, size_t samples, int y_offset
     for (int i = 0; i < points - 1; i++) {
         int x1 = (i * SCREEN_WIDTH) / points;
         int x2 = ((i + 1) * SCREEN_WIDTH) / points;
-        int y1 = y_offset + SCREEN_HEIGHT / 4 - (int)((data[i] - min_val) / (max_val - min_val + 1e-6) * (SCREEN_HEIGHT / 4));
-        int y2 = y_offset + SCREEN_HEIGHT / 4 - (int)((data[i + 1] - min_val) / (max_val - min_val + 1e-6) * (SCREEN_HEIGHT / 4));
+        int y1 = y_offset - (int)((data[i] - min_val) / (max_val - min_val + 1e-6) * (SCREEN_HEIGHT / 6));
+        int y2 = y_offset - (int)((data[i + 1] - min_val) / (max_val - min_val + 1e-6) * (SCREEN_HEIGHT / 6));
         SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
     }
 }
@@ -142,7 +153,7 @@ int main(int argc, char* argv[]) {
     TTF_Init();
     SDL_Window* window = SDL_CreateWindow("ECG Monitor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    TTF_Font* font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24);
+    TTF_Font* font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32);
 
     if (!font) {
         printf("Failed to load font: %s\n", TTF_GetError());
@@ -180,21 +191,21 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        draw_ecg(renderer, mom_data, mom_samples, SCREEN_HEIGHT / 4, mom_color);
-        draw_ecg(renderer, baby_data, mom_samples, SCREEN_HEIGHT / 2, baby_color);
-        draw_axes(renderer, font, SCREEN_HEIGHT / 4);
-        draw_axes(renderer, font, SCREEN_HEIGHT / 2);
+        // Labels for the ECG graphs
+        draw_text(renderer, font, "Mom", 50, SCREEN_HEIGHT / 4 - 50, text_color, 0);
+        draw_text(renderer, font, "Baby", 50, SCREEN_HEIGHT / 2 - 50, text_color, 0);
 
-        char mom_hr_text[64], baby_hr_text[64];
-        snprintf(mom_hr_text, sizeof(mom_hr_text), "Mom HR: %d BPM", mom_heart_rate);
-        snprintf(baby_hr_text, sizeof(baby_hr_text), "Baby HR: %d BPM", baby_heart_rate);
+        // Draw ECG signals with increased spacing
+        draw_ecg(renderer, mom_data, mom_samples, SCREEN_HEIGHT / 3, mom_color);
+        draw_ecg(renderer, baby_data, mom_samples, 2 * SCREEN_HEIGHT / 3, baby_color);
 
-        draw_text(renderer, font, mom_hr_text, 50, 50, text_color);
-        draw_text(renderer, font, baby_hr_text, 50, 100, text_color);
+        // Centered heart rate display
+        char hr_text[128];
+        snprintf(hr_text, sizeof(hr_text), "Mom HR: %d BPM   |   Baby HR: %d BPM", mom_heart_rate, baby_heart_rate);
+        draw_text(renderer, font, hr_text, 0, 50, text_color, 1);
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16); // ~60 FPS
-
     }
 
     free(mom_data);
