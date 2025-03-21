@@ -109,6 +109,34 @@ void draw_ecg(SDL_Renderer* renderer, double* data, size_t samples, int y_offset
     }
 }
 
+void draw_axes(SDL_Renderer* renderer, TTF_Font* font, int y_offset) {
+    SDL_Color white = {255, 255, 255};
+
+    // Draw X-Axis
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderDrawLine(renderer, 50, y_offset + SCREEN_HEIGHT / 4, SCREEN_WIDTH - 50, y_offset + SCREEN_HEIGHT / 4);
+
+    // Draw time labels
+    for (int i = 0; i <= TIME_WINDOW; i++) {
+        int x = 50 + (i * (SCREEN_WIDTH - 100)) / TIME_WINDOW;
+        char label[8];
+        snprintf(label, sizeof(label), "%ds", i);
+        draw_text(renderer, font, label, x, y_offset + SCREEN_HEIGHT / 4 + 10, white);
+    }
+
+    // Draw Y-Axis
+    SDL_RenderDrawLine(renderer, 50, y_offset + 10, 50, y_offset + SCREEN_HEIGHT / 4 - 10);
+
+    // Draw voltage labels
+    for (int i = -1; i <= 1; i++) {  // Adjust range based on ECG amplitude
+        int y = y_offset + SCREEN_HEIGHT / 4 - (int)((i + 1) * (SCREEN_HEIGHT / 8));
+        char label[8];
+        snprintf(label, sizeof(label), "%dmV", i * 500);  // Assuming ±500mV range
+        draw_text(renderer, font, label, 10, y, white);
+    }
+}
+
+
 int main(int argc, char* argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
     TTF_Init();
@@ -143,6 +171,8 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
 
     while (running) {
+        draw_axes(renderer, font, SCREEN_HEIGHT / 4);
+        draw_axes(renderer, font, SCREEN_HEIGHT / 2);    
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = 0;
