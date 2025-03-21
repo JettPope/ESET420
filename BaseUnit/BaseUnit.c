@@ -199,6 +199,10 @@ int main(int argc, char* argv[]) {
         draw_ecg(renderer, mom_data, mom_samples, SCREEN_HEIGHT / 3, mom_color);
         draw_ecg(renderer, baby_data, mom_samples, 2 * SCREEN_HEIGHT / 3, baby_color);
 
+	    // draw axes
+	    draw_axes(renderer, font, SCREEN_HEIGHT / 4);
+        draw_axes(renderer, font, SCREEN_HEIGHT / 2);
+
         // Centered heart rate display
         char hr_text[128];
         snprintf(hr_text, sizeof(hr_text), "Mom HR: %d BPM   |   Baby HR: %d BPM", mom_heart_rate, baby_heart_rate);
