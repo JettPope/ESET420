@@ -151,7 +151,7 @@ void draw_axes(SDL_Renderer* renderer, TTF_Font* font, int y_offset) {
 int main(int argc, char* argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
     TTF_Init();
-    SDL_Window* window = SDL_CreateWindow("ECG Monitor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("ECG Monitor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     TTF_Font* font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32);
 
@@ -183,8 +183,9 @@ int main(int argc, char* argv[]) {
 
     while (running) {
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = 0;
+            if (event.type == SDL_QUIT ||
+		(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
+                	running = 0;
             }
         }
 
@@ -197,7 +198,7 @@ int main(int argc, char* argv[]) {
 
         // Draw ECG signals with increased spacing
         draw_ecg(renderer, mom_data, mom_samples, SCREEN_HEIGHT / 3, mom_color);
-        draw_ecg(renderer, baby_data, mom_samples, 2 * SCREEN_HEIGHT / 3, baby_color);
+        draw_ecg(renderer, baby_data, mom_samples, 2 * SCREEN_HEIGHT / 2, baby_color);
 
 	    // draw axes
 	    draw_axes(renderer, font, SCREEN_HEIGHT / 4);
