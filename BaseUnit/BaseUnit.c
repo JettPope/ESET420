@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
 #define CHANNEL_INDEX 1 // ECG channel index
 #define SCAN_RATE 1000  // Hz
 #define NUM_CHANNELS 5  // Total number of channels
