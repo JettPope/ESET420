@@ -192,17 +192,22 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
+
+        // Position mom and baby signals
+        int mom_y_offset = SCREEN_HEIGHT / 6; // Higher position
+        int baby_y_offset = SCREEN_HEIGHT / 2 + 100; // Lower position with space
+        
+        // Draw ECG signals
+        draw_ecg(renderer, mom_data, mom_samples, mom_y_offset, mom_color);
+        draw_ecg(renderer, baby_data, mom_samples, baby_y_offset, baby_color);
+        
+        // Label Axes
+        draw_axes(renderer, font, mom_y_offset);
+        draw_axes(renderer, font, baby_y_offset);
+        
         // Labels for the ECG graphs
-        draw_text(renderer, font, "Mom", 50, SCREEN_HEIGHT / 4 - 50, text_color, 0);
-        draw_text(renderer, font, "Baby", 50, SCREEN_HEIGHT / 2 - 50, text_color, 0);
-
-        // Draw ECG signals with increased spacing
-        draw_ecg(renderer, mom_data, mom_samples, SCREEN_HEIGHT / 3, mom_color);
-        draw_ecg(renderer, baby_data, mom_samples, 2 * SCREEN_HEIGHT / 2, baby_color);
-
-	    // draw axes
-	    draw_axes(renderer, font, SCREEN_HEIGHT / 4);
-        draw_axes(renderer, font, SCREEN_HEIGHT / 2);
+        draw_text(renderer, font, "Mom ECG", 50, mom_y_offset - 30, text_color, 0);
+        draw_text(renderer, font, "Baby ECG", 50, baby_y_offset - 30, text_color, 0);
 
         // Centered heart rate display
         char hr_text[128];
