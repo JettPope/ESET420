@@ -1,0 +1,12 @@
+File Name:  tam_022503_racap.dat
+Frontend Gain: 1000.0000
+Scan Rate: 1000.0000
+Channels Used:
+Output Filtered			Gain: 2.4400
+ECG			Gain: 2.4400
+D/A Output			Gain: 2.4400
+Digital Output 4			Gain: 2.4400
+Digital Output 6			Gain: 2.4400
+
+Notes:
+Data format is float64
