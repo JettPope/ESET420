@@ -10,6 +10,7 @@
 #define ADC_CHANNEL1 ADC1_CHANNEL_0  // GPIO 36 corresponds to ADC1_CHANNEL_0
 #define ADC_CHANNEL2 ADC1_CHANNEL_1  // GPIO 36 corresponds to ADC1_CHANNEL_0
 
+// bluetooth address is 74:4d:bd:a1:ab:65
 //BluetoothSerial SerialBT;  // Create a Bluetooth Serial object
 
 // Data wire is plugged into GPIO3 on the Arduino
@@ -71,17 +72,17 @@ void send_bluetooth_data(const char *data) {
 void heartbeat_task() {
     int adc_value1 = adc1_get_raw(ADC_CHANNEL1); // Use ADC1 function correctly
     int adc_value2 = adc1_get_raw(ADC_CHANNEL2); // Use ADC1 function correctly
-    Serial.print("Raw_ADC1_Value:");
-    Serial.print(adc_value1);
-    Serial.print(",");
+    //Serial.print("Raw_ADC1_Value:");
+    //Serial.print(adc_value1);
+   // Serial.print(",");
     float voltage1 = adc_value1 * (3.3 / 4095.0);
     Serial.print("Voltage_1:");
     Serial.print(voltage1, 3);
     V1.writeValue(voltage1);
     Serial.print(",");
-    Serial.print("Raw_ADC2_Value:");
-    Serial.print(adc_value2);
-    Serial.print(",");
+    //Serial.print("Raw_ADC2_Value:");
+    //Serial.print(adc_value2);
+    //Serial.print(",");
     float voltage2 = adc_value2 * (3.3 / 4095.0);
     Serial.print("Voltage_2:");
     Serial.println(voltage2, 3);
@@ -105,7 +106,7 @@ void temp_task(){
   float temp = sensors.getTempFByIndex(0);
 
   // Check if reading was successful
-  if(temp != -196.60) 
+  if(true || (temp != float(-196.60)))
   {
     Serial.print("Temp:");
     Serial.print(temp);
@@ -114,7 +115,9 @@ void temp_task(){
   } 
   else
   {
-    Serial.println("Error: Could not read temperature data");
+    Serial.print("TempError");
+    TempF.writeValue(temp);
+    sensors.begin();
   }
 }
 
@@ -124,7 +127,10 @@ void setup() {
     configure_adc();  // Initialize ADC here!
     // Start up the Temp Sensor library
     sensors.begin();
+    temp_task();
     BLESetup();
+    Serial.print("Local address is: ");
+    Serial.println(BLE.address());
 }
 
 void loop() {
