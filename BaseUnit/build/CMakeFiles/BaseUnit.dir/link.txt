@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/BaseUnit.dir/BaseUnit.c.o -o BaseUnit  /usr/lib/aarch64-linux-gnu/libSDL2.so /usr/lib/aarch64-linux-gnu/libSDL2_ttf.so /usr/lib/aarch64-linux-gnu/libSDL2.so 
