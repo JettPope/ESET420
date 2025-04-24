@@ -21,13 +21,20 @@ time_axis = np.linspace(-BUFFER_SIZE * SAMPLE_INTERVAL, 0, BUFFER_SIZE)
 
 # Matplotlib setup
 plt.ion()
+
 fig, (ax_mother, ax_baby) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
 
 status_text = fig.suptitle("Connecting to On-Body Device...", fontsize=14)
 line_mother, = ax_mother.plot(time_axis, mother_ecg, label="Mother ECG", color="red")
 line_baby, = ax_baby.plot(time_axis, baby_ecg, label="Baby ECG", color="blue")
 
+# Mother ECG plot setup
 ax_mother.set_xlim(-10, 0)
+ax_mother.set_ylabel("Amplitude")
+ax_mother.set_title("Mother ECG")
+ax_mother.grid(True)
+
+# Baby ECG plot setup
 ax_baby.set_xlim(-10, 0)
 ax_baby.set_ylabel("Amplitude")
 ax_baby.set_title("Baby ECG (Calculated)")
@@ -36,6 +43,8 @@ ax_baby.grid(True)
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.pause(SAMPLE_INTERVAL)
+
+plt.get_current_fig_manager().full_screen_toggle()
 
 async def read_and_plot(client):
     global mother_ecg, baby_ecg
@@ -59,7 +68,7 @@ async def read_and_plot(client):
 
         except (BleakError, asyncio.TimeoutError, struct.error) as e:
             print(f"[Warning] BLE read error: {e}")
-            raise  # Raise to trigger reconnect logic
+            raise
         except Exception as e:
             print(f"[Fatal] Unexpected error: {e}")
             raise
@@ -95,6 +104,6 @@ async def main():
             print(f"[Reconnect] Connection lost or failed: {e}")
             status_text.set_text("Disconnected. Reconnecting to On-Body Device...")
             plt.pause(0.1)
-            await asyncio.sleep(3)  # Retry after short pause
+            await asyncio.sleep(3)
 
 asyncio.run(main())
