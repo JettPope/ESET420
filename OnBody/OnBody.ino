@@ -30,9 +30,9 @@ BLEFloatCharacteristic V2("2B19", BLERead | BLENotify);
 
 void BLESetup(){
   if (!BLE.begin()) { 
-    Serial.println("starting BLE failed!");
+    //Serial.println("starting BLE failed!");
 
-    while (1);
+    //while (1);
   }
   BLE.setDeviceName("ADC");
   BLE.setLocalName("ADC");
@@ -46,7 +46,7 @@ void BLESetup(){
   V2.writeValue(0);
   BLE.advertise();
  // BLE.setConnectable(true);
-  Serial.println("BLE Started");
+  //Serial.println("BLE Started");
 }
 
 void configure_adc() {
@@ -63,12 +63,6 @@ void configure_adc() {
     esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1100, adc_chars);
 }
 
-void send_bluetooth_data(const char *data) {
-    Serial.print(data);
-    Serial.print("Sent: ");
-    Serial.println(data);
-}
-
 void heartbeat_task() {
     int adc_value1 = adc1_get_raw(ADC_CHANNEL1); // Use ADC1 function correctly
     int adc_value2 = adc1_get_raw(ADC_CHANNEL2); // Use ADC1 function correctly
@@ -76,16 +70,16 @@ void heartbeat_task() {
     //Serial.print(adc_value1);
    // Serial.print(",");
     float voltage1 = adc_value1 * (3.3 / 4095.0);
-    Serial.print("Voltage_1:");
-    Serial.print(voltage1, 3);
+    //Serial.print("Voltage_1:");
+    //Serial.print(voltage1, 3);
     V1.writeValue(voltage1);
-    Serial.print(",");
+    //Serial.print(",");
     //Serial.print("Raw_ADC2_Value:");
     //Serial.print(adc_value2);
     //Serial.print(",");
     float voltage2 = adc_value2 * (3.3 / 4095.0);
-    Serial.print("Voltage_2:");
-    Serial.println(voltage2, 3);
+    //Serial.print("Voltage_2:");
+    //Serial.println(voltage2, 3);
     V2.writeValue(voltage2);
     
     /*int heartbeat = (int)(voltage * 100);
@@ -122,24 +116,24 @@ void temp_task(){
 }
 
 void setup() {
-    Serial.begin(115200);
+    //Serial.begin(115200);
     //Serial.println("Bluetooth Started! Waiting for connection...");
     configure_adc();  // Initialize ADC here!
     // Start up the Temp Sensor library
     sensors.begin();
     temp_task();
     BLESetup();
-    Serial.print("Local address is: ");
-    Serial.println(BLE.address());
+    //Serial.print("Local address is: ");
+    //Serial.println(BLE.address());
 }
 
 void loop() {
   BLEDevice central = BLE.central();
   central.connected();
   if (central) {
-    Serial.print("Connected to central: ");
+    //Serial.print("Connected to central: ");
     // print the central's BT address:
-    Serial.println(central.address());
+    //Serial.println(central.address());
     // turn on the LED to indicate the connection:
     digitalWrite(LED_BUILTIN, HIGH);
 
@@ -147,14 +141,14 @@ void loop() {
     // while the central is connected:
     while (central.connected()) {
       heartbeat_task();
-      temp_task();
+      //temp_task();
     }
     // when the central disconnects, turn off the LED:
-    digitalWrite(LED_BUILTIN, LOW);
-    Serial.print("Disconnected from central: ");
-    Serial.println(central.address());
+    
+   // Serial.print("Disconnected from central: ");
+    //Serial.println(central.address());
   }
-  
+  digitalWrite(LED_BUILTIN, LOW);
   //Serial.print("Local address is: ");
 
   //Serial.println(BLE.address());
