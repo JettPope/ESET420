@@ -2,6 +2,7 @@ import asyncio
 import struct
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from bleak import BleakScanner, BleakClient
 from bleak.exc import BleakError
 
@@ -20,31 +21,36 @@ baby_ecg = np.zeros(BUFFER_SIZE)
 time_axis = np.linspace(-BUFFER_SIZE * SAMPLE_INTERVAL, 0, BUFFER_SIZE)
 
 # Matplotlib setup
+mpl.rcParams['toolbar'] = 'None'
 plt.ion()
 
 fig, (ax_mother, ax_baby) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+
+fig.canvas.header_visible = False
+fig.canvas.footer_visible = False
 
 status_text = fig.suptitle("Connecting to On-Body Device...", fontsize=14)
 line_mother, = ax_mother.plot(time_axis, mother_ecg, label="Mother ECG", color="red")
 line_baby, = ax_baby.plot(time_axis, baby_ecg, label="Baby ECG", color="blue")
 
+plt.get_current_fig_manager().full_screen_toggle()
+
 # Mother ECG plot setup
 ax_mother.set_xlim(-10, 0)
 ax_mother.set_ylabel("Amplitude")
+ax_mother.set_xlabel("Time (s)")
 ax_mother.set_title("Mother ECG")
 ax_mother.grid(True)
 
 # Baby ECG plot setup
 ax_baby.set_xlim(-10, 0)
 ax_baby.set_ylabel("Amplitude")
-ax_baby.set_title("Baby ECG (Calculated)")
+ax_baby.set_title("Baby ECG")
 ax_baby.set_xlabel("Time (s)")
 ax_baby.grid(True)
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.pause(SAMPLE_INTERVAL)
-
-plt.get_current_fig_manager().full_screen_toggle()
 
 async def read_and_plot(client):
     global mother_ecg, baby_ecg
