@@ -3,105 +3,98 @@ import struct
 import numpy as np
 import matplotlib.pyplot as plt
 from bleak import BleakScanner, BleakClient
+from bleak.exc import BleakError
 
 # UUIDs
 UUID_MOTHER_ECG = "00002b18-0000-1000-8000-00805f9b34fb"
 UUID_SUM_ECG = "00002b19-0000-1000-8000-00805f9b34fb"
-UUID_TEMP = "00002a6e-0000-1000-8000-00805f9b34fb"
-
-CHARACTERISTIC_UUIDS = [UUID_MOTHER_ECG, UUID_SUM_ECG, UUID_TEMP]
+CHARACTERISTIC_UUIDS = [UUID_MOTHER_ECG, UUID_SUM_ECG]
 
 # Plotting parameters
-BUFFER_SIZE = 200  # For 10 seconds at 20 Hz
-SAMPLE_INTERVAL = 0.05  # Seconds between samples (20 Hz)
+SAMPLE_INTERVAL = 0.05
+BUFFER_SIZE = int(1/SAMPLE_INTERVAL * 10)
 
 # Buffers
 mother_ecg = np.zeros(BUFFER_SIZE)
 baby_ecg = np.zeros(BUFFER_SIZE)
-time_axis = np.linspace(-BUFFER_SIZE * SAMPLE_INTERVAL, 0, BUFFER_SIZE)  # e.g., -10 to 0 seconds
+time_axis = np.linspace(-BUFFER_SIZE * SAMPLE_INTERVAL, 0, BUFFER_SIZE)
 
 # Matplotlib setup
 plt.ion()
 fig, (ax_mother, ax_baby) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
 
-temp_text = fig.suptitle("Skin Temperature: -- �C", fontsize=14)
+status_text = fig.suptitle("Connecting to On-Body Device...", fontsize=14)
 line_mother, = ax_mother.plot(time_axis, mother_ecg, label="Mother ECG", color="red")
 line_baby, = ax_baby.plot(time_axis, baby_ecg, label="Baby ECG", color="blue")
 
-# Set axes
-ax_mother.set_ylim(mother_ecg.min() - 0.1, mother_ecg.max() + 0.1)
-ax_baby.set_ylim(baby_ecg.min() - 0.1, baby_ecg.max() + 0.1)
-plt.pause(SAMPLE_INTERVAL)
-ax_mother.set_xlim(-10, 0)  # Fixed x-axis
-
+ax_mother.set_xlim(-10, 0)
+ax_baby.set_xlim(-10, 0)
 ax_baby.set_ylabel("Amplitude")
 ax_baby.set_title("Baby ECG (Calculated)")
 ax_baby.set_xlabel("Time (s)")
 ax_baby.grid(True)
-ax_baby.set_xlim(-10, 0)  # Fixed x-axis
 
-plt.tight_layout(rect=[0, 0, 1, 0.95])  # Leave space for suptitle
+plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.pause(SAMPLE_INTERVAL)
+
+async def read_and_plot(client):
+    global mother_ecg, baby_ecg
+    while True:
+        try:
+            raw_values = [await client.read_gatt_char(uuid) for uuid in CHARACTERISTIC_UUIDS]
+            mother_val = struct.unpack('f', raw_values[0])[0]
+            sum_val = struct.unpack('f', raw_values[1])[0]
+            baby_val = sum_val - mother_val
+
+            mother_ecg = np.roll(mother_ecg, -1)
+            baby_ecg = np.roll(baby_ecg, -1)
+            mother_ecg[-1] = mother_val
+            baby_ecg[-1] = baby_val
+
+            line_mother.set_ydata(mother_ecg)
+            line_baby.set_ydata(baby_ecg)
+            ax_mother.set_ylim(mother_ecg.min() - 0.1, mother_ecg.max() + 0.1)
+            ax_baby.set_ylim(baby_ecg.min() - 0.1, baby_ecg.max() + 0.1)
+            plt.pause(SAMPLE_INTERVAL)
+
+        except (BleakError, asyncio.TimeoutError, struct.error) as e:
+            print(f"[Warning] BLE read error: {e}")
+            raise  # Raise to trigger reconnect logic
+        except Exception as e:
+            print(f"[Fatal] Unexpected error: {e}")
+            raise
 
 async def main():
-    print("Scanning for ESP32...")
+    global status_text
 
-    # Scan for device
-    devices = await BleakScanner.discover()
-    esp32_device = next((dev for dev in devices if "ADC" in dev.name), None)
+    while True:
+        try:
+            status_text.set_text("Scanning for On-Body Device...")
+            plt.pause(0.1)
+            devices = await BleakScanner.discover()
+            esp32_device = next((dev for dev in devices if "ADC" in dev.name), None)
 
-    if not esp32_device:
-        print("ESP32 not found.")
-        return
+            if not esp32_device:
+                status_text.set_text("On-Body Device Not Found. Retrying...")
+                print("ESP32 not found. Retrying in 5s...")
+                await asyncio.sleep(5)
+                continue
 
-    print(f"Found ESP32: {esp32_device.address}")
+            print(f"Found ESP32: {esp32_device.address}")
+            status_text.set_text("Connecting to On-Body Device...")
+            plt.pause(0.1)
 
-    # Connect to device
-    async with BleakClient(esp32_device.address) as client:
-        print("Connected to ESP32!")
+            async with BleakClient(esp32_device.address) as client:
+                print("Connected!")
+                status_text.set_text("Connected to On-Body Device")
+                plt.pause(0.1)
 
-        while True:
-            try:
-                # Read all values
-                raw_values = []
-                for i, uuid in enumerate(CHARACTERISTIC_UUIDS):
-                    raw = await client.read_gatt_char(uuid)
-                    raw_values.append(raw)
+                await read_and_plot(client)
 
-                mother_val = struct.unpack('f', raw_values[0])[0]
-                sum_val = struct.unpack('f', raw_values[1])[0]
-                skin_temp = struct.unpack('f', raw_values[2])[0]
+        except Exception as e:
+            print(f"[Reconnect] Connection lost or failed: {e}")
+            status_text.set_text("Disconnected. Reconnecting to On-Body Device...")
+            plt.pause(0.1)
+            await asyncio.sleep(3)  # Retry after short pause
 
-                # Calculate baby ECG
-                baby_val = sum_val - mother_val
-
-                print(f"Mother Signal: {mother_val}")
-                print(f"Baby Signal: {baby_val}")
-                print(f"Sum_val: {sum_val}")
-                print(f"Skin Temp: {skin_temp}")
-
-                # Update buffers
-                global mother_ecg, baby_ecg
-                mother_ecg = np.roll(mother_ecg, -1)
-                baby_ecg = np.roll(baby_ecg, -1)
-                mother_ecg[-1] = mother_val
-                baby_ecg[-1] = baby_val
-
-                # Update plots
-                line_mother.set_ydata(mother_ecg)
-                line_baby.set_ydata(baby_ecg)
-                temp_text.set_text(f"Skin Temperature: {skin_temp:.2f} C")
-                ax_mother.relim()
-                ax_baby.relim()
-                plt.pause(SAMPLE_INTERVAL)
-
-                # Update axes
-                ax_mother.set_ylim(mother_ecg.min() - 0.1, mother_ecg.max() + 0.1)
-                ax_baby.set_ylim(baby_ecg.min() - 0.1, baby_ecg.max() + 0.1)
-                plt.pause(SAMPLE_INTERVAL)
-
-            except Exception as e:
-                print(f"Error: {e}")
-                break
-
-# Run
 asyncio.run(main())
