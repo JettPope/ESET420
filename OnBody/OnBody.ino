@@ -49,6 +49,7 @@ void BLESetup(){
   //Serial.println("BLE Started");
 }
 
+// ADC config
 void configure_adc() {
     // Configure ADC width
     adc1_config_width(ADC_WIDTH_BIT_12);
