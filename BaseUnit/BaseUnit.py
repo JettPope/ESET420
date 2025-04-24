@@ -91,8 +91,8 @@ async def main():
 
             if not esp32_device:
                 status_text.set_text("On-Body Device Not Found. Retrying...")
-                print("ESP32 not found. Retrying in 5s...")
-                await asyncio.sleep(5)
+                print("ESP32 not found. Retrying in 1s...")
+                await asyncio.sleep(1)
                 continue
 
             print(f"Found ESP32: {esp32_device.address}")
