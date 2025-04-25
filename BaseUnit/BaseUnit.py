@@ -5,9 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from bleak import BleakScanner, BleakClient
 
-# UUIDs
-UUID_MOTHER_ECG = "00002b18-0000-1000-8000-00805f9b34fb"
-UUID_SUM_ECG = "00002b19-0000-1000-8000-00805f9b34fb"
+UUID = "00002b18-0000-1000-8000-00805f9b34fb"
 
 # Plotting parameters
 SAMPLE_INTERVAL = 0.05
@@ -49,22 +47,21 @@ ax_baby.grid(True)
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.pause(SAMPLE_INTERVAL)
 
-# Notification handlers
-def mother_ecg_handler(sender, data):
+# Notification handler
+def ecg_handler(sender, data):
     global mother_ecg, baby_ecg
-    mother_val = struct.unpack('f', data)[0]
-    mother_ecg = np.roll(mother_ecg, -1)
-    mother_ecg[-1] = mother_val
-    baby_ecg = np.roll(baby_ecg, -1)
-    baby_ecg[-1] = baby_ecg[-2]  # Placeholder until sum_ecg_handler updates it
-    update_plot()
 
-def sum_ecg_handler(sender, data):
-    global mother_ecg, baby_ecg
-    sum_val = struct.unpack('f', data)[0]
-    baby_val = sum_val - mother_ecg[-1]
-    baby_ecg[-1] = baby_val
-    update_plot()
+    if len(data) >= 8:
+        mother_val, sum_val = struct.unpack('ff', data)
+        baby_val = sum_val - mother_val
+
+        mother_ecg = np.roll(mother_ecg, -1)
+        mother_ecg[-1] = mother_val
+
+        baby_ecg = np.roll(baby_ecg, -1)
+        baby_ecg[-1] = baby_val
+
+        update_plot()
 
 def update_plot():
     line_mother.set_ydata(mother_ecg)
@@ -98,8 +95,7 @@ async def main():
                 status_text.set_text("Connected to On-Body Device")
                 plt.pause(0.1)
 
-                await client.start_notify(UUID_MOTHER_ECG, mother_ecg_handler)
-                await client.start_notify(UUID_SUM_ECG, sum_ecg_handler)
+                await client.start_notify(UUID, ecg_handler)
 
                 while True:
                     await asyncio.sleep(1)
