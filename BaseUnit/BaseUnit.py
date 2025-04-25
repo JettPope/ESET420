@@ -48,27 +48,45 @@ plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.pause(SAMPLE_INTERVAL)
 
 # Notification handler
+#def ecg_handler(sender, data):
+#    global mother_ecg, baby_ecg
+#
+#    if len(data) >= 8:
+#        mother_val, sum_val = struct.unpack('ff', data)
+#        baby_val = sum_val - mother_val
+#
+#        mother_ecg = np.roll(mother_ecg, -1)
+#        mother_ecg[-1] = mother_val
+#
+#        baby_ecg = np.roll(baby_ecg, -1)
+#        baby_ecg[-1] = baby_val
+
+        #update_plot()
 def ecg_handler(sender, data):
     global mother_ecg, baby_ecg
 
-    if len(data) >= 8:
-        mother_val, sum_val = struct.unpack('ff', data)
-        baby_val = sum_val - mother_val
+    try:
+        if len(data) >= 8:
+            mother_val, sum_val = struct.unpack('ff', data[:8])
+            baby_val = sum_val - mother_val
 
-        mother_ecg = np.roll(mother_ecg, -1)
-        mother_ecg[-1] = mother_val
+            mother_ecg = np.roll(mother_ecg, -1)
+            mother_ecg[-1] = mother_val
 
-        baby_ecg = np.roll(baby_ecg, -1)
-        baby_ecg[-1] = baby_val
+            baby_ecg = np.roll(baby_ecg, -1)
+            baby_ecg[-1] = baby_val
+    except Exception as e:
+        print(f"[Handler Error] Failed to parse data: {e}")
 
-        update_plot()
 
 def update_plot():
     line_mother.set_ydata(mother_ecg)
     line_baby.set_ydata(baby_ecg)
     ax_mother.set_ylim(mother_ecg.min() - 0.1, mother_ecg.max() + 0.1)
     ax_baby.set_ylim(baby_ecg.min() - 0.1, baby_ecg.max() + 0.1)
-    plt.pause(SAMPLE_INTERVAL)
+    #plt.pause(SAMPLE_INTERVAL / 10)
+    plt.canvas.draw()
+#    await asyncio.sleep(1)
 
 async def main():
     global status_text
@@ -94,11 +112,24 @@ async def main():
                 print("Connected!")
                 status_text.set_text("Connected to On-Body Device")
                 plt.pause(0.1)
-
+                #plt.draw()
+#                try:
+                #while(True):
                 await client.start_notify(UUID, ecg_handler)
 
-                while True:
-                    await asyncio.sleep(1)
+                while await client.is_connected():
+                    update_plot()
+                    await asyncio.sleep(0.01)  # 20 FPS plot update rate
+                await asyncio.Event().wait()
+                print("Disconnected from On-Body device")
+#                await asyncio.sleep(1)
+#                except Exception as e:
+#                    print(f"[Reconnect] Connection lost or failed: {e}")
+#                    status_text.set_text("Disconnected. Reconnecting to On-Body Device...")
+#                    plt.pause(0.1)
+#                    await asyncio.sleep(3)
+                #while True:
+                    #await asyncio.sleep(1)
 
         except Exception as e:
             print(f"[Reconnect] Connection lost or failed: {e}")
