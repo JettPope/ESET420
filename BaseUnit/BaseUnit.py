@@ -58,6 +58,7 @@ ax_baby.set_xlabel("Time (s)")
 ax_baby.grid(True)
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])
+
 plt.pause(SAMPLE_INTERVAL)
 
 def ecg_handler(sender, data):
@@ -116,6 +117,19 @@ def update_plot():
 
     plt.pause(SAMPLE_INTERVAL / 10)
 
+def save_and_close():
+    try:
+        file = open(f"/media/BJAP/B352DRIVE/ECGDATA{len(mother_ecg)}.csv", "x")
+        file.write("Time,MotherECG,FetusECG\n")
+        for x in range(len(mother_ecg)):
+            file.write(f"{x},{mother_ecg[x]},{baby_ecg[x]}")
+        file.close()
+    except Exception as e:
+        status_text.set_text("Correct Drive Not Connected, Please Use Only The Provided Drive")
+        plt.pause(0.1)
+
+butt = mpl.widgets.Button(ax_mother, 'Save Data',color="red")
+butt.on_clicked(save_and_close())
 
 async def main():
     global status_text
