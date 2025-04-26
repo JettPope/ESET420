@@ -3,9 +3,9 @@ import scipy.signal
 import matplotlib.pyplot as plt
 
 # Parameters
-file_name_mother = r"C:\PC\Documents\School\25 Spring (A WHOOP)\ESET 420\Code\ESET420\ECGSignals\OriginalECGRacapMom.dat"
-file_name_baby = r"C:\PC\Documents\School\25 Spring (A WHOOP)\ESET 420\Code\ESET420\ECGSignals\BabyECGRacap.dat"
-new_file_name = r"C:\PC\Documents\School\25 Spring (A WHOOP)\ESET 420\Code\ESET420\ECGSignals\SumECGRacapMomPlusBaby.dat"
+file_name_mother = r"C:\Users\bjdpc\Downloads\ESET420-main\ESET420-main\ECGSignals\OriginalECGRacapMom.dat"
+file_name_baby = r"C:\Users\bjdpc\Downloads\ESET420-main\ESET420-main\ECGSignals\BabyECGRacap.dat"
+new_file_name = r"C:\Users\bjdpc\Downloads\ESET420-main\ESET420-main\ECGSignals\SumECGRacapMomPlusBaby.dat"
 
 scan_rate = 1000  # Hz
 duration_mother = 550  # seconds
@@ -38,7 +38,7 @@ baby_hr = mother_hr * 1.3  # Baby's HR is 30% higher than mother's
 resample_factor = mother_hr / baby_hr  # Factor to adjust baby's HR
 
 # Reduce amplitude and resample
-ecg_baby = ecg_mother / 10  # Reduce amplitude
+ecg_baby = ecg_mother / 6  # Reduce amplitude
 new_length = int(len(ecg_mother) * resample_factor)
 ecg_baby = scipy.signal.resample(ecg_baby, new_length)
 

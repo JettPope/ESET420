@@ -1,9 +1,9 @@
 import numpy as np
 
-new_file_name = r"C:\Users\bjdpc\Downloads\ESET420-main\ESET420-main\ECGSignals\ECGMom.csv"
+new_file_name = r"C:\Users\bjdpc\Downloads\ESET420-main\ESET420-main\ECGSignals\ECGSum.csv"
 
 # Parameters from the .hdr file
-file_name = r"C:\Users\bjdpc\Downloads\ESET420-main\ESET420-main\ECGSignals\OriginalECGRacapMom.dat" # change to reflect path to raw data file
+file_name = r"C:\Users\bjdpc\Downloads\ESET420-main\ESET420-main\ECGSignals\SumECGRacapMomPlusBaby.dat" # change to reflect path to raw data file
 scan_rate = 1000  # Hz
 channels = ["Output Filtered", "ECG", "D/A Output", "Digital Output 4", "Digital Output 6"]
 num_channels = len(channels) # 5 channels (length of channels array)
