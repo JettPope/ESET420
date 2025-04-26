@@ -58,7 +58,6 @@ ax_baby.set_xlabel("Time (s)")
 ax_baby.grid(True)
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])
-
 plt.pause(SAMPLE_INTERVAL)
 
 def ecg_handler(sender, data):
