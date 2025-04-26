@@ -10,7 +10,7 @@ UUID = "00002b18-0000-1000-8000-00805f9b34fb"
 
 # Plotting parameters
 SAMPLE_INTERVAL = 0.05
-BUFFER_SIZE = int(1 / SAMPLE_INTERVAL * 10)
+BUFFER_SIZE = int(1 / SAMPLE_INTERVAL * 100)
 
 # Buffers
 mother_ecg = np.zeros(BUFFER_SIZE)
@@ -106,8 +106,8 @@ def compute_bpm(timestamps):
 def update_plot():
     line_mother.set_ydata(mother_ecg)
     line_baby.set_ydata(baby_ecg)
-    ax_mother.set_ylim(mother_ecg.min() - 0.1, mother_ecg.max() + 0.1)
-    ax_baby.set_ylim(baby_ecg.min() - 0.02, baby_ecg.max() + 0.02)
+    ax_mother.set_ylim(mother_ecg.min() - 0.1, mother_ecg.max() + 0.2)
+    ax_baby.set_ylim(max(0, baby_ecg.min() - 0.02), baby_ecg.max() + 0.02)
 
     bpm_mother = compute_bpm(mother_beat_times)
     bpm_baby = compute_bpm(baby_beat_times)
