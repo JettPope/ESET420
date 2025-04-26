@@ -12,6 +12,9 @@ UUID = "00002b18-0000-1000-8000-00805f9b34fb"
 SAMPLE_INTERVAL = 0.05
 BUFFER_SIZE = int(1 / SAMPLE_INTERVAL * 100)
 
+mother_stor = []
+baby_stor = []
+
 # Buffers
 mother_ecg = np.zeros(BUFFER_SIZE)
 baby_ecg = np.zeros(BUFFER_SIZE)
@@ -31,6 +34,7 @@ plt.ion()
 fig, (ax_mother, ax_baby) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
 fig.canvas.header_visible = False
 fig.canvas.footer_visible = False
+plt.get_current_fig_manager().full_screen_toggle()
 
 # permanent text sections
 status_text = fig.suptitle("Connecting to On-Body Device...", fontsize=24, y=0.98)
@@ -39,8 +43,6 @@ heart_rate_text = fig.text(0.5, 0.9, "", ha='center', va='center', fontsize=18, 
 
 line_mother, = ax_mother.plot(time_axis, mother_ecg, label="Mother ECG", color="red")
 line_baby, = ax_baby.plot(time_axis, baby_ecg, label="Baby ECG", color="blue")
-
-plt.get_current_fig_manager().full_screen_toggle()
 
 # Mother ECG plot setup
 ax_mother.set_xlim(-10, 0)
@@ -62,6 +64,7 @@ plt.pause(SAMPLE_INTERVAL)
 
 def ecg_handler(sender, data):
     global mother_ecg, baby_ecg
+    global mother_stor, baby_stor
     global mother_beat_times, baby_beat_times
     global last_mother_val, last_baby_val
 
@@ -75,6 +78,8 @@ def ecg_handler(sender, data):
             mother_ecg[-1] = mother_val
             baby_ecg = np.roll(baby_ecg, -1)
             baby_ecg[-1] = baby_val
+            mother_stor.append(mother_val)
+            baby_stor.append(baby_val)
 
             # Heartbeat detection
             t_now = time.time()
