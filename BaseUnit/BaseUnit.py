@@ -40,7 +40,6 @@ plt.get_current_fig_manager().full_screen_toggle()
 status_text = fig.suptitle("Connecting to On-Body Device...", fontsize=24, y=0.98)
 heart_rate_text = fig.text(0.5, 0.9, "", ha='center', va='center', fontsize=18, color='black')
 
-
 line_mother, = ax_mother.plot(time_axis, mother_ecg, label="Mother ECG", color="red")
 line_baby, = ax_baby.plot(time_axis, baby_ecg, label="Baby ECG", color="blue")
 
@@ -126,10 +125,10 @@ def update_plot():
 
 def save_and_close():
     try:
-        file = open(f"/media/BJAP/B352DRIVE/ECGDATA{len(mother_ecg)}.csv", "x")
+        file = open(f"/media/BJAP/B352DRIVE/ECGDATA{len(mother_stor)}.csv", "x")
         file.write("Time,MotherECG,FetusECG\n")
-        for x in range(len(mother_ecg)):
-            file.write(f"{x},{mother_ecg[x]},{baby_ecg[x]}")
+        for x in range(len(mother_stor)):
+            file.write(f"{x},{mother_stor[x]},{baby_stor[x]}")
         file.close()
     except Exception as e:
         status_text.set_text("Correct Drive Not Connected, Please Use Only The Provided Drive")
