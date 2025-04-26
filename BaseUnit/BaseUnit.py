@@ -134,8 +134,9 @@ def save_and_close():
         status_text.set_text("Correct Drive Not Connected, Please Use Only The Provided Drive")
         plt.pause(0.1)
 
-butt = mpl.widgets.Button(ax_mother, 'Save Data',color="red")
-butt.on_clicked(save_and_close())
+button_ax = fig.add_axes([0.01, 0.9, 0.1, 0.05])  # [left, bottom, width, height] (all in 0-1 figure coordinates)
+butt = mpl.widgets.Button(button_ax, 'Save Data', color="red")
+butt.on_clicked(save_and_close)
 
 async def main():
     global status_text
