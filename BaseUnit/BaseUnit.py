@@ -10,12 +10,12 @@ UUID = "00002b18-0000-1000-8000-00805f9b34fb"
 
 # Plotting parameters
 SAMPLE_INTERVAL = 0.05
-BUFFER_SIZE = int(1 / SAMPLE_INTERVAL * 100)
+BUFFER_SIZE = int(1 / SAMPLE_INTERVAL)*100
 
 # Buffers
 mother_ecg = np.zeros(BUFFER_SIZE)
 baby_ecg = np.zeros(BUFFER_SIZE)
-time_axis = np.linspace(-BUFFER_SIZE * SAMPLE_INTERVAL, 0, BUFFER_SIZE)
+time_axis = np.linspace(-10, 0, BUFFER_SIZE)
 MOTHER_THRESHOLD = 0.6
 BABY_THRESHOLD = 0.06
 MAX_BEATS_TRACKED = 27  # Sliding window
@@ -114,7 +114,10 @@ def update_plot():
 
     heart_rate_text.set_text(f"Mother BPM: {bpm_mother:.1f}   Baby BPM: {bpm_baby:.1f}")
 
-    plt.pause(SAMPLE_INTERVAL / 10)
+#    fig, (ax_mother, ax_baby) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+#    plt.pause(SAMPLE_INTERVAL / 10)
+    fig.canvas.draw()
+    fig.canvas.flush_events()
 
 
 async def main():
@@ -123,7 +126,8 @@ async def main():
     while True:
         try:
             status_text.set_text("Scanning for On-Body Device...")
-            plt.pause(0.1)
+#            plt.pause(0.1)
+            fig.canvas.draw()
             devices = await BleakScanner.discover()
             esp32_device = next((dev for dev in devices if "ADC" in dev.name), None)
 
@@ -135,30 +139,19 @@ async def main():
 
             print(f"Found ESP32: {esp32_device.address}")
             status_text.set_text("Connecting to On-Body Device...")
-            plt.pause(0.1)
+            fig.canvas.draw()
 
             async with BleakClient(esp32_device.address) as client:
                 print("Connected!")
                 status_text.set_text("Connected to On-Body Device")
-                plt.pause(0.1)
-                #plt.draw()
-#                try:
-                #while(True):
+                fig.canvas.draw()
                 await client.start_notify(UUID, ecg_handler)
 
                 while await client.is_connected():
                     update_plot()
-                    await asyncio.sleep(0.01)  # 20 FPS plot update rate
-                await asyncio.Event().wait()
+                    await asyncio.sleep(0.0001)  # 20 FPS plot update rate
+                #await asyncio.Event().wait()
                 print("Disconnected from On-Body device")
-#                await asyncio.sleep(1)
-#                except Exception as e:
-#                    print(f"[Reconnect] Connection lost or failed: {e}")
-#                    status_text.set_text("Disconnected. Reconnecting to On-Body Device...")
-#                    plt.pause(0.1)
-#                    await asyncio.sleep(3)
-                #while True:
-                    #await asyncio.sleep(1)
 
         except Exception as e:
             print(f"[Reconnect] Connection lost or failed: {e}")
