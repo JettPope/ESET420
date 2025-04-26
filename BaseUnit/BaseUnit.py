@@ -117,9 +117,6 @@ def update_plot():
     bpm_baby = compute_bpm(baby_beat_times)
 
     heart_rate_text.set_text(f"Mother BPM: {bpm_mother:.1f}   Baby BPM: {bpm_baby:.1f}")
-
-#    fig, (ax_mother, ax_baby) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
-#    plt.pause(SAMPLE_INTERVAL / 10)
     fig.canvas.draw()
     fig.canvas.flush_events()
 
@@ -128,15 +125,16 @@ def save_and_close():
         file = open(f"/media/BJAP/B352DRIVE/ECGDATA{len(mother_stor)}.csv", "x")
         file.write("Time,MotherECG,FetusECG\n")
         for x in range(len(mother_stor)):
-            file.write(f"{x},{mother_stor[x]},{baby_stor[x]}")
+            file.write(f"{x},{mother_stor[x]},{baby_stor[x]}\n")
         file.close()
     except Exception as e:
         status_text.set_text("Correct Drive Not Connected, Please Use Only The Provided Drive")
         plt.pause(0.1)
 
-button_ax = fig.add_axes([0.01, 0.9, 0.1, 0.05])  # [left, bottom, width, height] (all in 0-1 figure coordinates)
-butt = mpl.widgets.Button(button_ax, 'Save Data', color="red")
-butt.on_clicked(save_and_close)
+# Save button
+button_ax = fig.add_axes([0.0, 0.9, 0.15, 0.15])  # [left, bottom, width, height] (all in 0-1 figure coordinates)
+butt = mpl.widgets.Button(button_ax, 'Save Data', color="green")
+butt.on_clicked(save_and_close())
 
 async def main():
     global status_text
@@ -144,7 +142,6 @@ async def main():
     while True:
         try:
             status_text.set_text("Scanning for On-Body Device...")
-#            plt.pause(0.1)
             fig.canvas.draw()
             devices = await BleakScanner.discover()
             esp32_device = next((dev for dev in devices if "ADC" in dev.name), None)
