@@ -132,21 +132,21 @@ def save_and_close():
         plt.pause(0.1)
 
 # Save button
-button_ax = fig.add_axes([0.0, 0.9, 0.15, 0.15])  # [left, bottom, width, height] (all in 0-1 figure coordinates)
-butt = mpl.widgets.Button(button_ax, 'Save Data', color="green")
-butt.on_clicked(save_and_close())
+#button_ax = fig.add_axes([0.0, 0.9, 0.15, 0.15])  # [left, bottom, width, height] (all in 0-1 figure coordinates)
+#butt = mpl.widgets.Button(button_ax, 'Save Data', color="green")
+#butt.on_clicked(save_and_close())
 
 # FIX ME Full screen toggle button
-fs_button_ax = fig.add_axes([0.89, 0.9, 0.1, 0.05])  # Top-right corner
-fs_button = mpl.widgets.Button(fs_button_ax, 'Full Screen', color="green")
+#fs_button_ax = fig.add_axes([0.89, 0.9, 0.1, 0.05])  # Top-right corner
+#fs_button = mpl.widgets.Button(fs_button_ax, 'Full Screen', color="green")
 
-def toggle_fullscreen(event):
+def toggle_fullscreen():
     fig_manager = plt.get_current_fig_manager()
     fig_manager.full_screen_toggle()
 
-fs_button.on_clicked(toggle_fullscreen)
-fs_button.label.set_verticalalignment('center')
-fs_button.label.set_horizontalalignment('center')
+#fs_button.on_clicked(toggle_fullscreen)
+#fs_button.label.set_verticalalignment('center')
+#fs_button.label.set_horizontalalignment('center')
 
 async def main():
     global status_text
