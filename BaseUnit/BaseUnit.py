@@ -124,7 +124,7 @@ def save_and_close():
     try:
         file = open(f"/media/BJAP/B352DRIVE/ECGDATA{len(mother_stor)}.csv", "x")
         file.write("Time,MotherECG,FetusECG\n")
-        for x in range(len(mother_stor)):
+        for x in range(0,len(mother_stor)):
             file.write(f"{x},{mother_stor[x]},{baby_stor[x]}\n")
         file.close()
     except Exception as e:
@@ -135,6 +135,18 @@ def save_and_close():
 button_ax = fig.add_axes([0.0, 0.9, 0.15, 0.15])  # [left, bottom, width, height] (all in 0-1 figure coordinates)
 butt = mpl.widgets.Button(button_ax, 'Save Data', color="green")
 butt.on_clicked(save_and_close())
+
+# FIX ME Full screen toggle button
+fs_button_ax = fig.add_axes([0.89, 0.9, 0.1, 0.05])  # Top-right corner
+fs_button = mpl.widgets.Button(fs_button_ax, 'Full Screen', color="green")
+
+def toggle_fullscreen(event):
+    fig_manager = plt.get_current_fig_manager()
+    fig_manager.full_screen_toggle()
+
+fs_button.on_clicked(toggle_fullscreen)
+fs_button.label.set_verticalalignment('center')
+fs_button.label.set_horizontalalignment('center')
 
 async def main():
     global status_text
