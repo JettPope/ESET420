@@ -3,50 +3,24 @@
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
-// Temp Sensor Libs
-#include <OneWire.h>
-#include <DallasTemperature.h>
 
-#define ADC_CHANNEL1 ADC1_CHANNEL_0  // GPIO 36 corresponds to ADC1_CHANNEL_0
-#define ADC_CHANNEL2 ADC1_CHANNEL_1  // GPIO 36 corresponds to ADC1_CHANNEL_0
-
-// bluetooth address is 74:4d:bd:a1:ab:65
-//BluetoothSerial SerialBT;  // Create a Bluetooth Serial object
-
-// Data wire is plugged into GPIO3 on the Arduino
-// #define ONE_WIRE_BUS 3
-
-// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
-// OneWire oneWire(ONE_WIRE_BUS);
-
-// Pass our oneWire reference to Dallas Temperature. 
-// DallasTemperature sensors(&oneWire);
+#define ADC_CHANNEL1 ADC1_CHANNEL_0  // GPIO 1 corresponds to ADC1_CHANNEL_0
+#define ADC_CHANNEL2 ADC1_CHANNEL_1  // GPIO 2 corresponds to ADC1_CHANNEL_1
 
 BLEService ADCService("180D");
 
 BLECharacteristic ecgData("2B18", BLERead | BLENotify, sizeof(float) * 2, true); // 8 bytes
-// BLEFloatCharacteristic TempF("2A6E", BLERead | BLENotify);
-// BLEFloatCharacteristic V1("2B18", BLERead | BLENotify);
-// BLEFloatCharacteristic V2("2B19", BLERead | BLENotify);
 
 void BLESetup(){
   if (!BLE.begin()) { 
-    //Serial.println("starting BLE failed!");
-
-    //while (1);
+    
   }
   BLE.setDeviceName("ADC");
   BLE.setLocalName("ADC");
   BLE.setAdvertisedService(ADCService); // add the service UUID
-  // ADCService.addCharacteristic(TempF); // add the battery level characteristic
   ADCService.addCharacteristic(ecgData);
-  BLE.addService(ADCService); // Add the battery service
-  // TempF.writeValue(0); // set initial value for this characteristic
-  V1.writeValue(0);
-  V2.writeValue(0);
+  BLE.addService(ADCService); // Add the service
   BLE.advertise();
- // BLE.setConnectable(true);
-  //Serial.println("BLE Started");
 }
 
 // ADC config
@@ -74,71 +48,28 @@ void heartbeat_task() {
   uint8_t buffer[8];
   memcpy(&buffer[0], &voltage1, sizeof(float));
   memcpy(&buffer[4], &voltage2, sizeof(float));
-
+  Serial.print("2,");
+  Serial.print(voltage1);
+  Serial.print(",0,");
+  Serial.println(voltage2);
   ecgData.writeValue(buffer, 8);
 }
 
-// void temp_task(){
-  // call sensors.requestTemperatures() to issue a global temperature 
-  // request to all devices on the bus
-  //Serial.print("Requesting temperatures...");
-  // sensors.requestTemperatures(); // Send the command to get temperatures
-  //Serial.println("DONE");
-  // After we got the temperatures, we can print them here.
-  // We use the function ByIndex, and as an example get the temperature from the first sensor only.
-  // float temp = sensors.getTempFByIndex(0);
-
-  // Check if reading was successful
-//   if(true || (temp != float(-196.60)))
-//   {
-//     Serial.print("Temp:");
-//     Serial.print(temp);
-//     TempF.writeValue(temp);
-//     Serial.print(",");
-//   } 
-//   else
-//   {
-//     Serial.print("TempError");
-//     TempF.writeValue(temp);
-//     sensors.begin();
-//   }
-// }
-
 void setup() {
-    //Serial.begin(115200);
-    //Serial.println("Bluetooth Started! Waiting for connection...");
+    Serial.begin(115200);
     configure_adc();  // Initialize ADC here!
-    // Start up the Temp Sensor library
-    // sensors.begin();
-    // temp_task();
     BLESetup();
-    //Serial.print("Local address is: ");
-    //Serial.println(BLE.address());
 }
 
 void loop() {
   BLEDevice central = BLE.central();
   central.connected();
   if (central) {
-    //Serial.print("Connected to central: ");
-    // print the central's BT address:
-    //Serial.println(central.address());
-    // turn on the LED to indicate the connection:
-    digitalWrite(LED_BUILTIN, HIGH);
-
-    // check the battery level every 200ms
     // while the central is connected:
     while (central.connected()) {
       heartbeat_task();
       //temp_task();
     }
-    // when the central disconnects, turn off the LED:
-    
-   // Serial.print("Disconnected from central: ");
-    //Serial.println(central.address());
+    // when the central disconnects
   }
-  digitalWrite(LED_BUILTIN, LOW);
-  //Serial.print("Local address is: ");
-
-  //Serial.println(BLE.address());
 }
